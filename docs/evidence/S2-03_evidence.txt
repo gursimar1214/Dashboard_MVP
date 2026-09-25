@@ -1,0 +1,49 @@
+STORY: S2-03 - Define dashboard metrics
+=========================================
+
+WHAT THE STORY WANTED (in plain words):
+Before building any chart, write down exactly what each number means.
+Like what counts as "revenue" - all orders? just non-discounted ones?
+Pick one answer and write down the exact sql for it, so the dashboard
+and the chatbot never disagree on what a word means later.
+
+WHAT I ACTUALLY DID:
+Made docs/dashboard_metrics_glossary.md. For every planned chart or
+number on the dashboard, wrote down:
+- what it means in plain words
+- the exact sql that calculates it
+- what table it comes from
+- what date field to use for time-based charts
+- what filters can be applied
+
+METRICS WRITTEN DOWN:
+
+1. Customer count - distinct customer_id in customers table
+2. Order count - just COUNT(*) on transactions
+3. Total revenue - SUM(order_value) from transactions
+   checked real value: $60,016,416.77
+4. Average order value - total revenue divided by order count,
+   not averaging each row directly, so it stays correct even if
+   filters get added later
+   checked real value: $120.03
+5. Session count - COUNT(*) on sessions
+6. Bounce rate - percent of sessions where bounce_flag is true
+7. High value order share - percent of transactions flagged
+   high_value_flag = Yes
+8. Discount usage rate - percent of transactions where
+   discount_applied is true
+9. Customer tier breakdown - count of customers grouped by
+   customer_tier (Bronze/Silver/Gold/Platinum)
+
+PROOF THIS GOT DONE:
+The file docs/dashboard_metrics_glossary.md exists with all 9 metrics,
+each one has its own exact sql query written next to it, not just a
+vague description.
+
+Two of the numbers (total revenue and average order value) were
+already checked for real against the actual database during S2-02's
+validation run, so they're not just theoretical formulas, they're
+numbers that were actually calculated and match.
+
+DONE. Every metric has one fixed meaning and one fixed sql formula,
+written down before a single chart got built.

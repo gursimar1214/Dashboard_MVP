@@ -1,0 +1,60 @@
+STORY: S1-02 - Clean the dashboard data
+=========================================
+
+WHAT THE STORY WANTED (in plain words):
+Write actual code (not one-time manual fixing) that fixes country names,
+true/false values, money values, dates, missing values, and duplicate
+rows. Has to be something you can run again and again, not a one-off fix.
+
+WHAT I ACTUALLY DID:
+Wrote one script: src/clean_data.py. It reads every raw csv and spits
+out a matching clean csv. Nothing done by hand, all done in code so it
+can run again anytime the raw data changes.
+
+Fixes made, one by one:
+
+1. COUNTRY CODE - built a small lookup so usa/U.S./US all turn into "US",
+   uk turns into "UK", de into "DE". Anything already fine like fr/in
+   just gets capitalized properly (FR/IN).
+
+2. MONEY VALUES - credit_limit and order_value had a $ sign and comma
+   in them like "$10,966". Stripped the $ and comma out, turned it into
+   a real number you can do math on, not text.
+
+3. TRUE/FALSE MESS - bounce_flag and discount_applied had 6 different
+   spellings (0/1/TRUE/FALSE/Yes/No). Built a lookup that turns every
+   single one of those into a real True or False.
+
+4. THE "unknown" AGE PROBLEM - 10,000 rows had the literal word
+   "unknown" sitting where a number should be. Used pandas to turn
+   any value that can't become a number into a proper blank/missing
+   value instead of crashing or leaving junk text in there.
+
+5. DATES - signup_date, session_timestamp, transaction_timestamp,
+   campaign start/end dates all get parsed properly into real dates.
+
+6. DUPLICATES - checked every file for duplicate rows and dropped any
+   found (turned out to be 0 in every file, but the check runs anyway
+   every single time).
+
+7. JUNK COLUMNS - dropped the noise_* columns since they're random
+   garbage columns that mean nothing.
+
+PROOF THIS GOT DONE:
+Ran the script for real. Output files created:
+- clean_data/clean_customers.csv - 200,000 rows
+- clean_data/clean_sessions.csv - 2,000,000 rows
+- clean_data/clean_transactions.csv - 500,000 rows
+- clean_data/clean_geo_data.csv - 100 rows
+- clean_data/clean_marketing_campaigns.csv - 200 rows
+
+Checked the actual output by eye:
+- country_code column now only shows: DE, FR, IN, UK, US
+- credit_limit now shows plain numbers like 10966.0, not "$10,966"
+- order_value now shows plain numbers like 20.39, not "$20.39"
+- bounce_flag and discount_applied now only show True or False
+
+You can re-run this script anytime with:
+python src/clean_data.py
+
+DONE. Real code, real output, checked by hand, repeatable.

@@ -1,0 +1,53 @@
+STORY: S2-01 - Create the sqlite database
+===========================================
+
+WHAT THE STORY WANTED (in plain words):
+Take the already-cleaned csv files and actually put them into a real
+sqlite database, one table per file. Don't join anything yet, just get
+the data into a real database instead of loose csv files.
+
+WHAT I ACTUALLY DID:
+Wrote src/build_db.py. It opens (or creates) sqlite_db/ecommerce.db,
+then reads each cleaned csv one by one and writes it in as its own
+table with the exact same name as the file.
+
+Tables made:
+- customers        <- clean_customers.csv
+- sessions         <- clean_sessions.csv
+- transactions     <- clean_transactions.csv
+- geo_data         <- clean_geo_data.csv
+- marketing_campaigns <- clean_marketing_campaigns.csv
+
+Nothing got joined together at this step. Each table is completely
+separate, just like the csv it came from.
+
+PROOF THIS GOT DONE:
+Ran the script. It printed:
+  customers              200,000 rows, 12 columns
+  sessions             2,000,000 rows, 11 columns
+  transactions           500,000 rows, 9 columns
+  geo_data                   100 rows, 5 columns
+  marketing_campaigns        200 rows, 6 columns
+
+Then opened the actual .db file again in a totally separate check (not
+trusting the same script) and ran real sql against it:
+
+SELECT name FROM sqlite_master WHERE type='table'
+-> gave back: customers, sessions, transactions, geo_data,
+   marketing_campaigns
+
+SELECT COUNT(*) FROM customers -> 200,000
+SELECT COUNT(*) FROM sessions -> 2,000,000
+SELECT COUNT(*) FROM transactions -> 500,000
+SELECT COUNT(*) FROM geo_data -> 100
+SELECT COUNT(*) FROM marketing_campaigns -> 200
+
+All numbers match the clean csv files exactly.
+
+File exists on disk: sqlite_db/ecommerce.db, about 173 MB.
+
+You can re-run this script anytime with:
+python src/build_db.py
+
+DONE. Real database file, real tables, row counts checked twice in two
+different ways, matches the clean data exactly.

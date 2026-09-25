@@ -1,0 +1,29 @@
+=== 1. Table counts ===
+  customers              expected    200,000  actual    200,000  [OK]
+  sessions               expected  2,000,000  actual  2,000,000  [OK]
+  transactions           expected    500,000  actual    500,000  [OK]
+  geo_data               expected        100  actual        100  [OK]
+  marketing_campaigns    expected        200  actual        200  [OK]
+
+=== 2. Duplicate primary keys ===
+  customers              customer_id        total=200,000 distinct=200,000  [OK, no duplicate keys]
+  sessions               session_id         total=2,000,000 distinct=2,000,000  [OK, no duplicate keys]
+  transactions           transaction_id     total=500,000 distinct=500,000  [OK, no duplicate keys]
+  geo_data               geo_ip_region      total=100 distinct=100  [OK, no duplicate keys]
+  marketing_campaigns    campaign_id        total=200 distinct=200  [OK, no duplicate keys]
+
+=== 3. Orphan foreign keys ===
+  sessions.customer_id -> customers             [OK, 0 orphans]
+  sessions.geo_ip_region -> geo_data            [OK, 0 orphans]
+  sessions.campaign_id -> marketing_campaigns   [OK, 0 orphans]
+  transactions.customer_id -> customers         [OK, 0 orphans]
+
+=== 4. Join cardinality (no fan-out / row duplication) ===
+  sessions alone: 2,000,000   sessions JOIN customers: 2,000,000  [OK, same row count after join]
+  transactions alone: 500,000   transactions JOIN customers: 500,000  [OK, same row count after join]
+
+=== 5. Hand-checked totals ===
+  total revenue (sum of order_value):     $60,016,416.77
+  total orders:                           500,000
+  average order value (revenue / orders): $120.03
+  spot check - customer_id 106636: 2 transactions, $781.06 total spend (verify this by eye against clean_transactions.csv if in doubt)

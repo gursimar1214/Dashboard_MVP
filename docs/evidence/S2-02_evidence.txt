@@ -1,0 +1,54 @@
+STORY: S2-02 - Validate joins and row counts
+==============================================
+
+WHAT THE STORY WANTED (in plain words):
+Prove the database is actually safe to build on. Check nothing got
+duplicated, no id points to something that doesn't exist, and joining
+tables together doesn't secretly blow up the row count.
+
+WHAT I ACTUALLY DID:
+Wrote src/validate_db.py. It runs 5 different checks straight against
+the real ecommerce.db file using actual sql, not guesses.
+
+CHECK 1 - table counts match what's expected:
+  customers: expected 200,000, actual 200,000 - OK
+  sessions: expected 2,000,000, actual 2,000,000 - OK
+  transactions: expected 500,000, actual 500,000 - OK
+  geo_data: expected 100, actual 100 - OK
+  marketing_campaigns: expected 200, actual 200 - OK
+
+CHECK 2 - no duplicate id in any table (like two rows with the same
+customer_id, which would break everything downstream):
+  customers -> total and distinct count of customer_id are the same,
+  no duplicates
+  same result for sessions, transactions, geo_data, marketing_campaigns
+  - all clean, 0 duplicate keys anywhere
+
+CHECK 3 - orphan ids (an id pointing to something that isn't there):
+  sessions.customer_id -> customers: 0 orphans
+  sessions.geo_ip_region -> geo_data: 0 orphans
+  sessions.campaign_id -> marketing_campaigns: 0 orphans
+  transactions.customer_id -> customers: 0 orphans
+
+CHECK 4 - joining tables doesn't secretly create extra rows:
+  sessions alone: 2,000,000 rows
+  sessions JOIN customers: still 2,000,000 rows - matches, so joining
+  did NOT duplicate anything
+  transactions alone: 500,000 rows
+  transactions JOIN customers: still 500,000 rows - matches
+
+CHECK 5 - real numbers you can trust and check by hand later:
+  total revenue (sum of order_value): $60,016,416.77
+  total orders: 500,000
+  average order value: $120.03
+
+PROOF THIS GOT DONE:
+All of the above was actually run and saved into
+docs/join_validation_report.txt so it's not just something that
+happened once in a terminal and disappeared.
+
+You can re-run this check anytime with:
+python src/validate_db.py
+
+DONE. Every check passed. Database is safe to build charts and a
+chatbot on top of, because nothing is duplicated or broken underneath.

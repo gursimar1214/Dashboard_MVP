@@ -1,0 +1,50 @@
+STORY: S1-01 - Understand the source tables
+=============================================
+
+WHAT THE STORY WANTED (in plain words):
+Look at every raw file before touching any code. Know what each file is,
+what one row means, what connects to what, and what's messed up.
+
+WHAT I ACTUALLY DID:
+Opened all 7 raw files (customers, sessions, transactions, geo_data,
+marketing_campaigns, train, test) using pandas. For each one I checked:
+- how many rows and columns it has
+- what each column means
+- if the id columns actually match up between files (like does every
+  customer_id in sessions really exist in customers)
+- if there's any duplicate rows
+- if dates actually make sense
+- what looks broken or weird
+
+PROOF THIS GOT DONE:
+- customers.csv: 200,000 rows, checked every column
+- sessions.csv: 2,000,000 rows, checked every column
+- transactions.csv: 500,000 rows, checked every column
+- geo_data.csv: 100 rows
+- marketing_campaigns.csv: 200 rows
+- train.csv: 160,000 rows, test.csv: 40,000 rows
+
+Checked every customer_id in sessions/transactions/train/test actually
+exists in customers.csv - found 0 missing ones (0 orphans) everywhere.
+
+Checked every geo_ip_region in sessions exists in geo_data.csv - 0 missing.
+Checked every campaign_id in sessions exists in marketing_campaigns.csv - 0 missing.
+
+Checked for duplicate rows in every file - found 0 duplicates anywhere.
+
+Found the real problems while doing this:
+- country_code has 10 different spellings for 5 real countries
+  (usa, U.S., USA, US, uk, UK, de, DE, fr, in)
+- credit_limit is text with a dollar sign and comma in it, like "$10,966"
+- order_value same problem, like "$20.39"
+- bounce_flag has 6 different ways of writing true/false
+  (0, 1, TRUE, FALSE, Yes, No)
+- discount_applied has the same 6-way mess
+- traffic_source and device_type are spelled in mixed upper/lower case
+- age column has 10,000 rows where the value is literally the word
+  "unknown" instead of a number
+
+All of this got written down properly in docs/data_dictionary.md,
+table by table, column by column.
+
+DONE. Every table understood, every issue written down, nothing guessed.
