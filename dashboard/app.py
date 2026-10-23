@@ -1,5 +1,5 @@
 """
-app.py  --  Sprint 3, tickets S3-01 and S3-04
+app.py  --  Sprint 3, tickets S3-01 and S3-04 (+ Chatbot tab)
 
 Run with (from the dashboard/ folder, or anywhere -- the path to
 sqlite_db/ecommerce.db is resolved relative to this file):
@@ -9,6 +9,12 @@ sqlite_db/ecommerce.db is resolved relative to this file):
 One command to start, sidebar navigation, a title on every page, a
 loading state while data is fetched, and a friendly message instead of
 a traceback when a query fails or a filter combination has no data.
+
+The Chatbot page talks to a separate FastAPI service (chatbot/main.py)
+over HTTP rather than importing the pipeline directly -- see
+chatbot/README.md for why (keeps the local-LLM dependencies out of the
+Streamlit process, and lets the two be started/restarted independently).
+Start it with `uvicorn chatbot.main:app --port 8000` before using this tab.
 """
 
 import pandas as pd
@@ -27,17 +33,27 @@ from data_access import (
     get_transactions_by_payment_method,
 )
 from filters import render_filters
+from chat_tab import render_chatbot
 
 st.set_page_config(page_title="Global Ecommerce Dashboard", page_icon="🌍", layout="wide")
 
-PAGES = ["Overview", "Customers", "Sessions", "Transactions"]
+PAGES = ["Overview", "Customers", "Sessions", "Transactions", "Chatbot"]
 
 
 def main() -> None:
     st.sidebar.title("Global Ecommerce Dashboard")
     page = st.sidebar.radio("Go to", PAGES, key="nav_page")
-    filters = render_filters()
 
+    # The chatbot has its own free-text input and doesn't use the
+    # sidebar's structured filters (it can query all data, not just what
+    # the sidebar constrains) -- skip rendering them, and its own error
+    # handling, so a service outage there can't take down the other pages.
+    if page == "Chatbot":
+        st.title(page)
+        render_chatbot()
+        return
+
+    filters = render_filters()
     st.title(page)
 
     try:

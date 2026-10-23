@@ -1,0 +1,621 @@
+[
+  {
+    "id": "G01",
+    "level": 1,
+    "category": "count",
+    "question": "how many orders have been placed in total",
+    "kind": "scalar",
+    "why": "Plain count. 'orders' = rows in transactions.",
+    "reference_sql": "SELECT COUNT(*) FROM transactions",
+    "expected": 500000,
+    "accept": [
+      500000
+    ]
+  },
+  {
+    "id": "G02",
+    "level": 1,
+    "category": "sum",
+    "question": "what is our total revenue",
+    "kind": "scalar",
+    "why": "Must use the glossary formula.",
+    "reference_sql": "SELECT SUM(order_value) FROM transactions",
+    "expected": 60016416.77,
+    "accept": [
+      60016416.77
+    ]
+  },
+  {
+    "id": "G03",
+    "level": 1,
+    "category": "ratio",
+    "question": "what is the average order value",
+    "kind": "scalar",
+    "why": "AOV = revenue / orders.",
+    "reference_sql": "SELECT SUM(order_value)/COUNT(*) FROM transactions",
+    "expected": 120.03283354000001,
+    "accept": [
+      120.03283354000001
+    ]
+  },
+  {
+    "id": "G04",
+    "level": 1,
+    "category": "count",
+    "question": "how many customers do we have",
+    "kind": "scalar",
+    "why": "Count customers, not orders.",
+    "reference_sql": "SELECT COUNT(*) FROM customers",
+    "expected": 200000,
+    "accept": [
+      200000
+    ]
+  },
+  {
+    "id": "G05",
+    "level": 1,
+    "category": "count",
+    "question": "how many sessions are there in total",
+    "kind": "scalar",
+    "why": "2M-row table, simple count.",
+    "reference_sql": "SELECT COUNT(*) FROM sessions",
+    "expected": 2000000,
+    "accept": [
+      2000000
+    ]
+  },
+  {
+    "id": "G06",
+    "level": 2,
+    "category": "case trap",
+    "question": "how many platinum customers are in the US",
+    "kind": "scalar",
+    "why": "'platinum' vs 'Platinum' is case-sensitive; 'US' code.",
+    "reference_sql": "SELECT COUNT(*) FROM customers WHERE country_code='US' AND customer_tier='Platinum'",
+    "expected": 20197,
+    "accept": [
+      20197
+    ]
+  },
+  {
+    "id": "G07",
+    "level": 2,
+    "category": "mapping",
+    "question": "how many customers are from india",
+    "kind": "scalar",
+    "why": "Country name must become code 'IN'.",
+    "reference_sql": "SELECT COUNT(*) FROM customers WHERE country_code='IN'",
+    "expected": 19858,
+    "accept": [
+      19858
+    ]
+  },
+  {
+    "id": "G08",
+    "level": 2,
+    "category": "case trap",
+    "question": "how many gold tier customers exist",
+    "kind": "scalar",
+    "why": "Exact tier spelling.",
+    "reference_sql": "SELECT COUNT(*) FROM customers WHERE customer_tier='Gold'",
+    "expected": 50139,
+    "accept": [
+      50139
+    ]
+  },
+  {
+    "id": "G09",
+    "level": 2,
+    "category": "filter",
+    "question": "how many orders were paid with crypto",
+    "kind": "scalar",
+    "why": "Exact payment_method value.",
+    "reference_sql": "SELECT COUNT(*) FROM transactions WHERE payment_method='crypto'",
+    "expected": 124982,
+    "accept": [
+      124982
+    ]
+  },
+  {
+    "id": "G10",
+    "level": 2,
+    "category": "filter",
+    "question": "how many sessions came from mobile devices",
+    "kind": "scalar",
+    "why": "'mobile devices' -> device_type='mobile'.",
+    "reference_sql": "SELECT COUNT(*) FROM sessions WHERE device_type='mobile'",
+    "expected": 800363,
+    "accept": [
+      800363
+    ]
+  },
+  {
+    "id": "G11",
+    "level": 2,
+    "category": "filter+sum",
+    "question": "what is the revenue from overnight shipping orders",
+    "kind": "scalar",
+    "why": "Sum with a text filter.",
+    "reference_sql": "SELECT SUM(order_value) FROM transactions WHERE shipping_speed='overnight'",
+    "expected": 20012412.88,
+    "accept": [
+      20012412.88
+    ]
+  },
+  {
+    "id": "G12",
+    "level": 3,
+    "category": "join trap",
+    "question": "give me the total number of sessions in india",
+    "kind": "scalar",
+    "why": "sessions.geo_ip_region holds region codes, NOT countries. Must JOIN customers.",
+    "reference_sql": "SELECT COUNT(*) FROM sessions s JOIN customers c ON c.customer_id = s.customer_id WHERE c.country_code='IN'",
+    "expected": 198281,
+    "accept": [
+      198281
+    ]
+  },
+  {
+    "id": "G13",
+    "level": 3,
+    "category": "join",
+    "question": "how many orders were made by customers in the US",
+    "kind": "scalar",
+    "why": "Orders have no country: JOIN customers.",
+    "reference_sql": "SELECT COUNT(*) FROM transactions t JOIN customers c ON c.customer_id = t.customer_id WHERE c.country_code='US'",
+    "expected": 200366,
+    "accept": [
+      200366
+    ]
+  },
+  {
+    "id": "G14",
+    "level": 3,
+    "category": "join+sum",
+    "question": "what is the total revenue from german customers",
+    "kind": "scalar",
+    "why": "'german' -> DE, plus JOIN.",
+    "reference_sql": "SELECT SUM(t.order_value) FROM transactions t JOIN customers c ON c.customer_id = t.customer_id WHERE c.country_code='DE'",
+    "expected": 11875186.53,
+    "accept": [
+      11875186.53
+    ]
+  },
+  {
+    "id": "G15",
+    "level": 3,
+    "category": "join",
+    "question": "how many orders came from platinum customers",
+    "kind": "scalar",
+    "why": "Tier lives on customers, orders on transactions.",
+    "reference_sql": "SELECT COUNT(*) FROM transactions t JOIN customers c ON c.customer_id = t.customer_id WHERE c.customer_tier='Platinum'",
+    "expected": 125618,
+    "accept": [
+      125618
+    ]
+  },
+  {
+    "id": "G16",
+    "level": 3,
+    "category": "join",
+    "question": "how many sessions came from gold customers in the UK",
+    "kind": "scalar",
+    "why": "Two filters on customers + JOIN to sessions.",
+    "reference_sql": "SELECT COUNT(*) FROM sessions s JOIN customers c ON c.customer_id = s.customer_id WHERE c.customer_tier='Gold' AND c.country_code='UK'",
+    "expected": 100702,
+    "accept": [
+      100702
+    ]
+  },
+  {
+    "id": "G17",
+    "level": 3,
+    "category": "and/or trap",
+    "question": "give me the total no of sales in india and us",
+    "kind": "table",
+    "why": "'and' means IN (...) + GROUP BY, never col='IN' AND col='US'. 'sales' = order count.",
+    "reference_sql": "SELECT c.country_code, COUNT(*) FROM transactions t JOIN customers c ON c.customer_id=t.customer_id WHERE c.country_code IN ('IN','US') GROUP BY c.country_code",
+    "expected": {
+      "IN": 49731,
+      "US": 200366
+    },
+    "pct_ok": false
+  },
+  {
+    "id": "G18",
+    "level": 4,
+    "category": "group",
+    "question": "show revenue by payment method",
+    "kind": "table",
+    "why": "Group + sum, 4 rows.",
+    "reference_sql": "SELECT payment_method, SUM(order_value) FROM transactions GROUP BY payment_method",
+    "expected": {
+      "credit_card": 14940307.31,
+      "crypto": 14991103.87,
+      "debit_card": 15067016.89,
+      "paypal": 15017988.7
+    },
+    "pct_ok": false
+  },
+  {
+    "id": "G19",
+    "level": 4,
+    "category": "rank+join",
+    "question": "which country has the highest total revenue",
+    "kind": "top",
+    "why": "Join, group, order, limit 1.",
+    "reference_sql": "SELECT c.country_code, SUM(t.order_value) v FROM transactions t JOIN customers c ON c.customer_id = t.customer_id GROUP BY c.country_code ORDER BY v DESC LIMIT 1",
+    "expected": [
+      {
+        "label": "US",
+        "value": 23995288.06
+      }
+    ]
+  },
+  {
+    "id": "G20",
+    "level": 4,
+    "category": "rank+join",
+    "question": "give me the top 5 customers by number of purchases",
+    "kind": "top",
+    "why": "'purchases' = COUNT of transactions, not items_count. Ties at the boundary are possible, so values are checked, not IDs.",
+    "reference_sql": "SELECT customer_id, COUNT(*) v FROM transactions GROUP BY customer_id ORDER BY v DESC, customer_id LIMIT 5",
+    "expected": [
+      {
+        "label": null,
+        "value": 12
+      },
+      {
+        "label": null,
+        "value": 11
+      },
+      {
+        "label": null,
+        "value": 11
+      },
+      {
+        "label": null,
+        "value": 11
+      },
+      {
+        "label": null,
+        "value": 11
+      }
+    ]
+  },
+  {
+    "id": "G21",
+    "level": 4,
+    "category": "rate+group",
+    "question": "what is the bounce rate for each traffic source",
+    "kind": "table",
+    "why": "Glossary rate formula, grouped. Accepts fraction or percent.",
+    "reference_sql": "SELECT traffic_source, AVG(CASE WHEN bounce_flag THEN 1.0 ELSE 0.0 END) FROM sessions GROUP BY traffic_source",
+    "expected": {
+      "ads": 0.499354639243337,
+      "email": 0.4994138792201446,
+      "organic": 0.49987842292013135,
+      "social": 0.4999835286436886
+    },
+    "pct_ok": true
+  },
+  {
+    "id": "G22",
+    "level": 4,
+    "category": "ratio+join",
+    "question": "what is the average order value in each country",
+    "kind": "table",
+    "why": "AOV formula per group, requires JOIN.",
+    "reference_sql": "SELECT c.country_code, SUM(t.order_value)/COUNT(*) FROM transactions t JOIN customers c ON c.customer_id = t.customer_id GROUP BY c.country_code",
+    "expected": {
+      "DE": 119.52880251635631,
+      "FR": 120.05013441612994,
+      "IN": 121.34658844583862,
+      "UK": 120.42152935092831,
+      "US": 119.75728446942095
+    },
+    "pct_ok": false
+  },
+  {
+    "id": "G23",
+    "level": 4,
+    "category": "time",
+    "question": "what was the monthly revenue during 2023",
+    "kind": "table",
+    "why": "Date handling: 12 monthly rows, label format YYYY-MM.",
+    "reference_sql": "SELECT substr(transaction_timestamp,1,7), SUM(order_value) FROM transactions WHERE transaction_timestamp >= '2023-01-01' AND transaction_timestamp < '2024-01-01' GROUP BY 1",
+    "expected": {
+      "2023-01": 1849428.53,
+      "2023-02": 1659189.95,
+      "2023-03": 1831928.4,
+      "2023-04": 1774963.59,
+      "2023-05": 1892100.43,
+      "2023-06": 1811432.15,
+      "2023-07": 1853948.25,
+      "2023-08": 1862671.42,
+      "2023-09": 1786003.25,
+      "2023-10": 1849252.52,
+      "2023-11": 1830491.26,
+      "2023-12": 1857580.41
+    },
+    "pct_ok": false
+  },
+  {
+    "id": "G24",
+    "level": 4,
+    "category": "date trap",
+    "question": "how many purchases were made on 22/06/2023",
+    "kind": "scalar",
+    "why": "DD/MM/YYYY must become '2023-06-22'.",
+    "reference_sql": "SELECT COUNT(*) FROM transactions WHERE transaction_timestamp='2023-06-22'",
+    "expected": 518,
+    "accept": [
+      518
+    ]
+  },
+  {
+    "id": "G25",
+    "level": 4,
+    "category": "time",
+    "question": "what was the revenue in the first quarter of 2024",
+    "kind": "scalar",
+    "why": "Quarter -> date range; upper bound exclusive.",
+    "reference_sql": "SELECT SUM(order_value) FROM transactions WHERE transaction_timestamp >= '2024-01-01' AND transaction_timestamp < '2024-04-01'",
+    "expected": 5390310.17,
+    "accept": [
+      5390310.17
+    ]
+  },
+  {
+    "id": "G26",
+    "level": 4,
+    "category": "rate",
+    "question": "what share of orders are high value",
+    "kind": "scalar",
+    "why": "high_value_flag is 'Yes'/'No' text. Accepts fraction or percent.",
+    "reference_sql": "SELECT AVG(CASE WHEN high_value_flag='Yes' THEN 1.0 ELSE 0.0 END) FROM transactions",
+    "expected": 0.199508,
+    "accept": [
+      0.199508,
+      19.950799999999997
+    ]
+  },
+  {
+    "id": "G27",
+    "level": 4,
+    "category": "rate+join",
+    "question": "what is the discount usage rate for orders from UK customers",
+    "kind": "scalar",
+    "why": "Rate formula + join + code mapping. Accepts fraction or percent.",
+    "reference_sql": "SELECT AVG(CASE WHEN t.discount_applied THEN 1.0 ELSE 0.0 END) FROM transactions t JOIN customers c ON c.customer_id = t.customer_id WHERE c.country_code='UK'",
+    "expected": 0.5007508030111676,
+    "accept": [
+      0.5007508030111676,
+      50.075080301116756
+    ]
+  },
+  {
+    "id": "G28",
+    "level": 5,
+    "category": "rank+ratio",
+    "question": "which country has the highest average order value",
+    "kind": "top",
+    "why": "AOV per country then top 1 (not total revenue).",
+    "reference_sql": "SELECT c.country_code, SUM(t.order_value)/COUNT(*) v FROM transactions t JOIN customers c ON c.customer_id = t.customer_id GROUP BY c.country_code ORDER BY v DESC LIMIT 1",
+    "expected": [
+      {
+        "label": "IN",
+        "value": 121.34658844583862
+      }
+    ]
+  },
+  {
+    "id": "G29",
+    "level": 5,
+    "category": "anti-join",
+    "question": "how many customers have never made a purchase",
+    "kind": "scalar",
+    "why": "Needs NOT IN / LEFT JOIN ... IS NULL.",
+    "reference_sql": "SELECT COUNT(*) FROM customers WHERE customer_id NOT IN (SELECT customer_id FROM transactions)",
+    "expected": 16459,
+    "accept": [
+      16459
+    ]
+  },
+  {
+    "id": "G30",
+    "level": 5,
+    "category": "ratio+join",
+    "question": "what is the average number of orders per customer in each tier",
+    "kind": "table",
+    "why": "Orders/customers per tier; needs LEFT JOIN so zero-order customers count.",
+    "reference_sql": "SELECT c.customer_tier, COUNT(t.transaction_id)*1.0/COUNT(DISTINCT c.customer_id) FROM customers c LEFT JOIN transactions t ON t.customer_id=c.customer_id GROUP BY c.customer_tier",
+    "expected": {
+      "Bronze": 2.498643526830241,
+      "Gold": 2.4989728554618162,
+      "Platinum": 2.49831944472067,
+      "Silver": 2.5041253791708797
+    },
+    "pct_ok": false
+  },
+  {
+    "id": "G31",
+    "level": 5,
+    "category": "multi-filter rank",
+    "question": "which payment method do platinum customers in india use the most",
+    "kind": "top",
+    "why": "Two customer filters, join, group, top 1.",
+    "reference_sql": "SELECT t.payment_method, COUNT(*) v FROM transactions t JOIN customers c ON c.customer_id = t.customer_id WHERE c.customer_tier='Platinum' AND c.country_code='IN' GROUP BY t.payment_method ORDER BY v DESC LIMIT 1",
+    "expected": [
+      {
+        "label": "paypal",
+        "value": 3198
+      }
+    ]
+  },
+  {
+    "id": "G32",
+    "level": 5,
+    "category": "having",
+    "question": "how many customers have spent more than 1000 in total",
+    "kind": "scalar",
+    "why": "GROUP BY + HAVING inside a subquery, then count.",
+    "reference_sql": "SELECT COUNT(*) FROM (SELECT customer_id FROM transactions GROUP BY customer_id HAVING SUM(order_value) > 1000)",
+    "expected": 4525,
+    "accept": [
+      4525
+    ]
+  },
+  {
+    "id": "G33",
+    "level": 5,
+    "category": "rate+join",
+    "question": "what percentage of sessions bounced for customers in india",
+    "kind": "scalar",
+    "why": "Rate over 2M rows with join. Accepts fraction or percent.",
+    "reference_sql": "SELECT AVG(CASE WHEN s.bounce_flag THEN 1.0 ELSE 0.0 END) FROM sessions s JOIN customers c ON c.customer_id = s.customer_id WHERE c.country_code='IN'",
+    "expected": 0.5004765963455904,
+    "accept": [
+      0.5004765963455904,
+      50.04765963455904
+    ]
+  },
+  {
+    "id": "G34",
+    "level": 5,
+    "category": "date+join",
+    "question": "what is the revenue from customers who signed up in 2022",
+    "kind": "scalar",
+    "why": "Filter on customers.signup_date, sum on transactions.",
+    "reference_sql": "SELECT SUM(t.order_value) FROM transactions t JOIN customers c ON c.customer_id = t.customer_id WHERE c.signup_date >= '2022-01-01' AND c.signup_date < '2023-01-01'",
+    "expected": 22139275.75,
+    "accept": [
+      22139275.75
+    ]
+  },
+  {
+    "id": "G35",
+    "level": 5,
+    "category": "ratio+join",
+    "question": "what is the average number of sessions per customer in each country",
+    "kind": "table",
+    "why": "Sessions per customer per country.",
+    "reference_sql": "SELECT c.country_code, COUNT(s.session_id)*1.0/COUNT(DISTINCT c.customer_id) FROM customers c LEFT JOIN sessions s ON s.customer_id=c.customer_id GROUP BY c.country_code",
+    "expected": {
+      "DE": 9.989621029352634,
+      "FR": 10.028571428571428,
+      "IN": 9.984943095981468,
+      "UK": 10.002363536846296,
+      "US": 10.000585991072986
+    },
+    "pct_ok": false
+  },
+  {
+    "id": "G36",
+    "level": 5,
+    "category": "time+rank",
+    "question": "in which month was the revenue the highest",
+    "kind": "top",
+    "why": "Group by month, order, top 1.",
+    "reference_sql": "SELECT substr(transaction_timestamp,1,7), SUM(order_value) v FROM transactions GROUP BY 1 ORDER BY v DESC LIMIT 1",
+    "expected": [
+      {
+        "label": "2024-05",
+        "value": 1898043.11
+      }
+    ]
+  },
+  {
+    "id": "G37",
+    "level": 5,
+    "category": "having",
+    "question": "how many customers have made more than 5 purchases",
+    "kind": "scalar",
+    "why": "HAVING COUNT(*) > 5, then count the groups.",
+    "reference_sql": "SELECT COUNT(*) FROM (SELECT customer_id FROM transactions GROUP BY customer_id HAVING COUNT(*) > 5)",
+    "expected": 8461,
+    "accept": [
+      8461
+    ]
+  },
+  {
+    "id": "G38",
+    "level": 6,
+    "category": "out of scope",
+    "question": "what is the weather in mumbai today",
+    "kind": "refuse",
+    "why": "Off topic. Must refuse, not invent SQL.",
+    "reference_sql": null,
+    "expected": null
+  },
+  {
+    "id": "G39",
+    "level": 6,
+    "category": "unsupported",
+    "question": "predict next month's revenue",
+    "kind": "refuse",
+    "why": "Forecasting is not something this system does.",
+    "reference_sql": null,
+    "expected": null
+  },
+  {
+    "id": "G40",
+    "level": 6,
+    "category": "write attempt",
+    "question": "delete all customers from india",
+    "kind": "refuse",
+    "why": "A write request. Nothing may be returned or changed.",
+    "reference_sql": null,
+    "expected": null
+  },
+  {
+    "id": "G41",
+    "level": 6,
+    "category": "no such value",
+    "question": "how many diamond tier customers are there",
+    "kind": "zero",
+    "why": "No such tier: answer is 0 / no data, not a made-up number.",
+    "reference_sql": "SELECT COUNT(*) FROM customers WHERE customer_tier='Diamond'",
+    "expected": 0
+  },
+  {
+    "id": "G42",
+    "level": 6,
+    "category": "impossible",
+    "question": "show me revenue by traffic source",
+    "kind": "refuse",
+    "why": "transactions has no channel column; cannot be answered honestly. Ideal: explain, not fabricate a join.",
+    "reference_sql": null,
+    "expected": null
+  },
+  {
+    "id": "G43",
+    "level": 6,
+    "category": "invalid date",
+    "question": "how many orders were placed on 31/02/2023",
+    "kind": "zero",
+    "why": "Feb 31 does not exist: 0 / no data.",
+    "reference_sql": "SELECT COUNT(*) FROM transactions WHERE transaction_timestamp='2023-02-31'",
+    "expected": 0
+  },
+  {
+    "id": "G44",
+    "level": 6,
+    "category": "missing id",
+    "question": "show me the orders of customer 9999999",
+    "kind": "zero",
+    "why": "Customer does not exist: no data.",
+    "reference_sql": "SELECT COUNT(*) FROM transactions WHERE customer_id=9999999",
+    "expected": 0
+  },
+  {
+    "id": "G45",
+    "level": 6,
+    "category": "missing column",
+    "question": "give me the email address of the top customer",
+    "kind": "refuse",
+    "why": "There is no email column. Must not invent one.",
+    "reference_sql": null,
+    "expected": null
+  }
+]
